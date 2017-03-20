@@ -1,4 +1,3 @@
-"""Place your SQLAlchemy models in this file."""
 import datetime
 from uuid import uuid4
 
@@ -8,7 +7,6 @@ from sqlalchemy.orm import relationship
 
 from websauna.system.model.meta import Base
 from websauna.system.model.columns import UTCDateTime
-
 from websauna.utils.time import now
 
 
@@ -29,8 +27,14 @@ class Question(Base):
     #: When this question was published
     published_at = Column(UTCDateTime, default=None)
 
-    #: Relationship mapping between question and choice
-    choices = relationship("Choice", back_populates="question", lazy="dynamic")
+    #: Relationship mapping between question and choice.
+    #: Each choice can have only question.
+    #: Deleting question deletes its choices.
+    choices = relationship("Choice",
+                           back_populates="question",
+                           lazy="dynamic",
+                           cascade="all, delete-orphan",
+                           single_parent=True)
 
     def is_recent(self):
         return self.published_at >= now() - datetime.timedelta(days=1)
@@ -62,7 +66,7 @@ class Choice(Base):
 
     #: Which question this choice is part of
     question_id = Column(Integer, ForeignKey('question.id'))
-    question = relationship("Question", back_populates="choices", uselist=False)
+    question = relationship("Question", back_populates="choices")
 
     def __repr__(self):
         """Shell and debugger presentation."""

@@ -1,38 +1,14 @@
-from uuid import UUID
-
-from myapp.models import Question
-from myapp.models import Choice
-from pyramid.httpexceptions import HTTPNotFound
-from pyramid.httpexceptions import HTTPFound
+from pyramid.request import Response
+from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.session import check_csrf_token
-from websauna.system.core import messages
-from websauna.system.http import Request
-from websauna.system.core.route import simple_route
 from websauna.utils.slug import slug_to_uuid
 from websauna.utils.slug import uuid_to_slug
-
-
-
-# Configure view named home at path / using a template myapp/home.html
-@simple_route("/", route_name="home", renderer="myapp/home.html")
-def home(request: Request):
-    """Render the site homepage."""
-    latest_question_list = request.dbsession.query(Question).order_by(Question.published_at.desc()).all()[:5]
-    return locals()
-
-
-@simple_route("/questions/{question_uuid}/results", route_name="results", renderer="myapp/results.html")
-def results(request: Request):
-
-    # Convert base64 encoded UUID string from request path to Python UUID object
-    question_uuid = slug_to_uuid(request.matchdict["question_uuid"])
-
-    question = request.dbsession.query(Question).filter_by(uuid=question_uuid).first()
-    if not question:
-        raise HTTPNotFound()
-    choices = question.choices.order_by(Choice.votes.desc())
-    return locals()
-
+from websauna.system.core import messages
+from websauna.system.http import Request
+from websauna.utils.slug import slug_to_uuid
+from websauna.system.core.route import simple_route
+from .models import Question
+from myapp.models import Choice
 
 @simple_route("/questions/{question_uuid}", route_name="detail", renderer="myapp/detail.html")
 def detail(request: Request):
@@ -45,9 +21,6 @@ def detail(request: Request):
         raise HTTPNotFound()
 
     if request.method == "POST":
-
-        # Check that CSRF token was good
-        check_csrf_token(request)
 
         question = request.dbsession.query(Question).filter_by(uuid=question_uuid).first()
         if not question:
@@ -65,3 +38,22 @@ def detail(request: Request):
 
     return locals()
 
+
+@simple_route("/questions/{question_uuid}/results", route_name="results", renderer="myapp/results.html")
+def results(request: Request):
+
+    # Convert base64 encoded UUID string from request path to Python UUID object
+    question_uuid = slug_to_uuid(request.matchdict["question_uuid"])
+
+    question = request.dbsession.query(Question).filter_by(uuid=question_uuid).first()
+    if not question:
+        raise HTTPNotFound()
+    choices = question.choices.order_by(Choice.votes.desc())
+    return locals()
+
+
+@simple_route("/", route_name="home", renderer="myapp/home.html")
+def home(request: Request):
+    """Render the site homepage."""
+    latest_question_list = request.dbsession.query(Question).order_by(Question.published_at.desc()).all()
+    return locals()

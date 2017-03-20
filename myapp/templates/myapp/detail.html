@@ -17,15 +17,8 @@
       </div>
     {% endif %}
 
-    {% if success_message %}
-      <div class="alert alert-success">
-        {{ success_message }}
-      </div>
-    {% endif %}
-
     <form class="form-vote" action="{{ 'detail'|route_url(question_uuid=question.uuid|uuid_to_slug) }}" method="post">
       <input name="csrf_token" type="hidden" value="{{ request.session.get_csrf_token() }}">
-
 
       {% for choice in question.choices %}
         <div class="radio">

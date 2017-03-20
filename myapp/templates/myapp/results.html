@@ -9,5 +9,6 @@
     {% endfor %}
   </ul>
 
-  <a href="{{ 'detail'|route_url(question_uuid=question.uuid|uuid_to_slug) }}">Vote again?</a>
+  <a href="{{ 'detail'|route_url(question_uuid=question.uuid|uuid_to_slug) }}">Vote again?</a>
 {% endblock %}
+
